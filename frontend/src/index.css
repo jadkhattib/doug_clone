@@ -1,0 +1,190 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+@import "tw-animate-css";
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-background: #F5F4F0;
+  --color-foreground: #2D2D2D;
+
+  --color-card: #FFFFFF;
+  --color-card-foreground: #2D2D2D;
+
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #2D2D2D;
+
+  --color-primary: #000000; /* Button Primary */
+  --color-primary-foreground: #FFFFFF;
+
+  --color-secondary: #F8F9FA; /* Button Secondary */
+  --color-secondary-foreground: #2D2D2D;
+
+  --color-muted: #666666; /* Secondary Text */
+  --color-muted-foreground: #2D2D2D;
+
+  --color-accent: #007BFF; /* Accent Blue */
+  --color-accent-foreground: #FFFFFF;
+
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #fafafa;
+
+  --color-border: #E5E5E5;
+  --color-input: #E5E5E5;
+  --color-ring: #007BFF;
+
+  --color-chart-1: #e67e22;
+  --color-chart-2: #2d8659;
+  --color-chart-3: #1e3a5f;
+  --color-chart-4: #f1c40f;
+  --color-chart-5: #e74c3c;
+
+  --color-yellow-accent: #FFD700;
+
+  --radius-lg: 0.5rem; /* 8px */
+  --radius-md: calc(0.5rem - 2px);
+  --radius-sm: calc(0.5rem - 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-border);
+  }
+}
+
+@layer utilities {
+  body {
+    font-family: "Inter", sans-serif;
+  }
+}
+
+@layer base {
+  :root {
+    --background: var(--color-background);
+    --foreground: var(--color-foreground);
+    --card: var(--color-card);
+    --card-foreground: var(--color-card-foreground);
+    --popover: var(--color-popover);
+    --popover-foreground: var(--color-popover-foreground);
+    --primary: var(--color-primary);
+    --primary-foreground: var(--color-primary-foreground);
+    --secondary: var(--color-secondary);
+    --secondary-foreground: var(--color-secondary-foreground);
+    --muted: var(--color-muted);
+    --muted-foreground: var(--color-muted-foreground);
+    --accent: var(--color-accent);
+    --accent-foreground: var(--color-accent-foreground);
+    --destructive: var(--color-destructive);
+    --destructive-foreground: var(--color-destructive-foreground);
+    --border: var(--color-border);
+    --input: var(--color-input);
+    --ring: var(--color-ring);
+    --chart-1: var(--color-chart-1);
+    --chart-2: var(--color-chart-2);
+    --chart-3: var(--color-chart-3);
+    --chart-4: var(--color-chart-4);
+    --chart-5: var(--color-chart-5);
+    --radius: var(--radius-lg);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  h1 {
+    font-size: 2rem; /* ~32px */
+    font-weight: 700; /* Bold */
+    color: var(--foreground);
+  }
+
+  h2 {
+    font-size: 1.125rem; /* ~18px */
+    font-weight: 600; /* Semibold */
+    color: var(--foreground);
+  }
+
+  p {
+    font-size: 0.875rem; /* ~14px */
+    font-weight: 400; /* Regular */
+    color: var(--muted);
+  }
+
+  .text-brand-name {
+    font-size: 1.5rem; /* ~24px */
+    font-weight: 700; /* Bold */
+    color: var(--primary);
+  }
+
+  .text-profile-name {
+    font-size: 2rem; /* ~32px */
+    font-weight: 700; /* Bold */
+    color: var(--foreground);
+  }
+
+  .text-profile-description {
+    font-size: 1rem; /* ~16px */
+    font-weight: 400; /* Regular */
+    color: var(--muted);
+  }
+
+  .text-section-header {
+    font-size: 1.125rem; /* ~18px */
+    font-weight: 600; /* Semibold */
+    color: var(--foreground);
+  }
+
+  .text-body {
+    font-size: 0.875rem; /* ~14px */
+    font-weight: 400; /* Regular */
+    color: var(--muted);
+  }
+
+  .text-button {
+    font-size: 0.875rem; /* ~14px */
+    font-weight: 500; /* Medium */
+  }
+
+  .container {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* Hide any injected error overlay portals in production-like builds */
+nextjs-portal {
+  display: none !important;
+}
