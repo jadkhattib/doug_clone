@@ -30,15 +30,20 @@ load_dotenv()
 app = FastAPI(title="Monks.IQ API", version="1.0.0")
 
 # Configure CORS
-# CORS configuration (allow local dev origins)
+# CORS configuration for both development and production
 allowed_origins = [
     "http://localhost:3000",
-    "http://localhost:5173",
+    "http://localhost:5173", 
     "http://localhost:3011",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:3011",
 ]
+
+# Add production origin if environment variable is set
+production_origin = os.getenv("FRONTEND_URL")
+if production_origin:
+    allowed_origins.append(production_origin)
 
 app.add_middleware(
     CORSMiddleware,
