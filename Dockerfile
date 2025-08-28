@@ -1,4 +1,22 @@
-# Use Python 3.11 slim image
+# Multi-stage build for frontend and backend
+FROM node:18-alpine AS frontend-builder
+
+# Set working directory for frontend build
+WORKDIR /frontend
+
+# Copy frontend package files
+COPY frontend/package*.json ./
+
+# Install frontend dependencies
+RUN npm ci
+
+# Copy frontend source code
+COPY frontend/ ./
+
+# Build frontend
+RUN npm run build
+
+# Backend stage
 FROM python:3.11-slim
 
 # Set working directory
@@ -16,8 +34,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend code
 COPY backend/ ./backend/
 
-# Copy frontend build (we'll build this separately)
-COPY frontend/dist/ ./frontend/dist/
+# Copy built frontend from the frontend-builder stage
+COPY --from=frontend-builder /frontend/dist/ ./frontend/dist/
 
 # Set environment variables
 ENV PYTHONPATH="/app"

@@ -44,19 +44,20 @@ gcloud secrets add-iam-policy-binding google-credentials \
 
 ## Deployment Steps
 
-### 1. Build the frontend
+### 1. Quick Deploy (Automated)
 
 ```bash
+# This will build frontend, push Docker image, and deploy to Cloud Run
 ./build.sh
 ```
 
-### 2. Build and push Docker image
+### 2. Manual Build and Deploy
 
 ```bash
 # Set your project ID
 PROJECT_ID="your-project-id"
 
-# Build and push to Google Container Registry
+# Build and push to Google Container Registry (includes frontend build)
 gcloud builds submit --tag gcr.io/${PROJECT_ID}/doug-clone
 ```
 
