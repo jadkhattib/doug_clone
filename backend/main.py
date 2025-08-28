@@ -509,10 +509,11 @@ async def chat(request: ChatRequest):
                 else:
                     messages.insert(0, {"role": "system", "content": context_prompt})
         
-        # Call OpenAI API
+        # Call OpenAI API with the latest GPT-4 model
         t_llm_start = time.perf_counter()
+        model_name = os.getenv("OPENAI_MODEL", "gpt-4o")  # Allow model to be configurable via env var
         response = openai_client.chat.completions.create(
-            model="gpt-4o",
+            model=model_name,
             messages=messages,
             temperature=request.temperature,
             max_tokens=request.max_tokens

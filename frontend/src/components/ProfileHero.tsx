@@ -8,7 +8,7 @@ const ProfileHero = () => {
       </div>
 
       <div className="px-6 pb-8 text-center">
-        <div className="w-[120px] h-[120px] mx-auto -mt-[60px] rounded-full border-4 border-background relative z-10 overflow-hidden">
+        <div className="w-[190px] h-[190px] mx-auto -mt-[60px] rounded-full border-4 border-background relative z-10 overflow-hidden">
           <img 
             src="/doug-martin.jpeg" 
             alt="Doug Martin IQ" 
