@@ -38,7 +38,7 @@ COPY backend/ ./backend/
 COPY --from=frontend-builder /frontend/dist/ ./frontend/dist/
 
 # Copy the image to the frontend dist folder (needed for the frontend)
-COPY "doug martin.jpeg" ./frontend/dist/
+COPY doug-martin.jpeg ./frontend/dist/
 
 # Set environment variables
 ENV PYTHONPATH="/app"
