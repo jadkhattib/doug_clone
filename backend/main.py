@@ -165,10 +165,24 @@ class EmbeddingChunk(BaseModel):
 def create_embeddings(text: str, model: str = "text-embedding-3-small") -> List[float]:
     """Generate embeddings using OpenAI's API"""
     try:
-        response = openai_client.embeddings.create(
-            input=text,
-            model=model
-        )
+        # Allow override via env and add fallback
+        preferred_embed_model = os.getenv("OPENAI_EMBEDDING_MODEL", model)
+        embed_models = [preferred_embed_model, "text-embedding-3-large", "text-embedding-3-small"]
+
+        last_err: Optional[Exception] = None
+        response = None
+        for em in embed_models:
+            try:
+                response = openai_client.embeddings.create(
+                    input=text,
+                    model=em
+                )
+                break
+            except Exception as err:
+                last_err = err
+
+        if response is None:
+            raise HTTPException(status_code=500, detail=f"Error creating embeddings: {last_err}")
         return response.data[0].embedding
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error creating embeddings: {str(e)}")
@@ -509,15 +523,29 @@ async def chat(request: ChatRequest):
                 else:
                     messages.insert(0, {"role": "system", "content": context_prompt})
         
-        # Call OpenAI API with the latest GPT-4 model
+        # Call OpenAI API with model fallback
         t_llm_start = time.perf_counter()
-        model_name = os.getenv("OPENAI_MODEL", "gpt-4o")  # Allow model to be configurable via env var
-        response = openai_client.chat.completions.create(
-            model=model_name,
-            messages=messages,
-            temperature=request.temperature,
-            max_tokens=request.max_tokens
-        )
+        preferred_model = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
+        fallback_models = [preferred_model, "gpt-4o", "gpt-4o-mini", "gpt-4o-2024-08-06"]
+
+        last_err: Optional[Exception] = None
+        response = None
+        for model_name in fallback_models:
+            try:
+                print(f"[llm] trying model={model_name}")
+                response = openai_client.chat.completions.create(
+                    model=model_name,
+                    messages=messages,
+                    temperature=request.temperature,
+                    max_tokens=request.max_tokens
+                )
+                break
+            except Exception as err:
+                last_err = err
+                print(f"[llm] model {model_name} failed: {err}")
+
+        if response is None:
+            raise HTTPException(status_code=502, detail=f"All chat models failed: {last_err}")
         t_llm_end = time.perf_counter()
         t_total_end = time.perf_counter()
         print(f"[timing] llm.chat ms={(t_llm_end - t_llm_start)*1000:.1f} total ms={(t_total_end - t_total_start)*1000:.1f}")
