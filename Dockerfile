@@ -37,6 +37,9 @@ COPY backend/ ./backend/
 # Copy built frontend from the frontend-builder stage
 COPY --from=frontend-builder /frontend/dist/ ./frontend/dist/
 
+# Copy the image to the frontend dist folder (needed for the frontend)
+COPY "doug martin.jpeg" ./frontend/dist/
+
 # Set environment variables
 ENV PYTHONPATH="/app"
 ENV PORT=8080
@@ -44,5 +47,9 @@ ENV PORT=8080
 # Expose port 8080 (Cloud Run default)
 EXPOSE 8080
 
+# Create a startup script to handle dynamic port
+RUN echo '#!/bin/bash\nPORT=${PORT:-8080}\nexec python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT' > /app/start.sh
+RUN chmod +x /app/start.sh
+
 # Command to run the application
-CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["/app/start.sh"]

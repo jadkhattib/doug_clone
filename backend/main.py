@@ -56,9 +56,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize clients
-openai.api_key = os.getenv("OPENAI_API_KEY")
-openai_client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Initialize clients with error handling
+try:
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    if openai_api_key:
+        openai.api_key = openai_api_key
+        openai_client = openai.OpenAI(api_key=openai_api_key)
+        print("✅ OpenAI client initialized successfully")
+    else:
+        openai_client = None
+        print("⚠️ OpenAI API key not found")
+except Exception as e:
+    openai_client = None
+    print(f"⚠️ Failed to initialize OpenAI client: {e}")
 
 # BigQuery configuration
 PROJECT_ID = os.getenv("GCP_PROJECT_ID", "discovery-flow")
@@ -110,7 +120,11 @@ def initialize_bigquery_client() -> Optional[bigquery.Client]:
 
 
 # Initialize BigQuery client
-bq_client = initialize_bigquery_client()
+try:
+    bq_client = initialize_bigquery_client()
+except Exception as e:
+    bq_client = None
+    print(f"⚠️ Failed to initialize BigQuery client: {e}")
 
 # Models
 class ChatMessage(BaseModel):
@@ -237,7 +251,7 @@ def retrieve_relevant_context(query: str, persona_id: str, top_k: int = 5) -> Li
         print(f"Using deployed index ID: {DEPLOYED_INDEX_ID}")
         
         # Initialize credentials
-        creds_env = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+        creds_env = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON") or os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
         credentials = None
         if creds_env and creds_env.startswith("{"):
             # Parse inline JSON credentials
@@ -398,6 +412,11 @@ async def root():
         "version": "1.0.0",
         "status": "running"
     }
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Cloud Run"""
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
 @app.post("/api/ingest", response_model=TextIngestionResponse)
 async def ingest_text(request: TextIngestionRequest):
@@ -564,23 +583,29 @@ async def delete_persona(persona_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Mount static files (frontend)
+# Mount static files (frontend) - only if directory exists
 frontend_dist_path = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
 if os.path.exists(frontend_dist_path):
-    app.mount("/static", StaticFiles(directory=frontend_dist_path), name="static")
-    
-    # Serve index.html for all non-API routes (SPA routing)
-    @app.get("/{full_path:path}")
-    async def serve_frontend(full_path: str):
-        # Don't serve frontend for API routes
-        if full_path.startswith("api/"):
-            raise HTTPException(status_code=404, detail="Not found")
+    try:
+        app.mount("/static", StaticFiles(directory=frontend_dist_path), name="static")
+        print(f"✅ Mounted static files from {frontend_dist_path}")
         
-        index_path = os.path.join(frontend_dist_path, "index.html")
-        if os.path.exists(index_path):
-            return FileResponse(index_path)
-        else:
-            raise HTTPException(status_code=404, detail="Frontend not found")
+        # Serve index.html for all non-API routes (SPA routing)
+        @app.get("/{full_path:path}")
+        async def serve_frontend(full_path: str):
+            # Don't serve frontend for API routes
+            if full_path.startswith("api/") or full_path.startswith("health"):
+                raise HTTPException(status_code=404, detail="Not found")
+            
+            index_path = os.path.join(frontend_dist_path, "index.html")
+            if os.path.exists(index_path):
+                return FileResponse(index_path)
+            else:
+                raise HTTPException(status_code=404, detail="Frontend not found")
+    except Exception as e:
+        print(f"⚠️ Failed to mount static files: {e}")
+else:
+    print(f"⚠️ Frontend dist directory not found: {frontend_dist_path}")
 
 if __name__ == "__main__":
     import uvicorn
